@@ -1,0 +1,30 @@
+image: gitlab/dind
+
+services:
+  - docker:dind
+
+
+stages:          # List of stages for jobs, and their order of execution
+  - prebuild
+  - build
+  - release
+
+prebuild-job:       # This job runs in the build stage, which runs first.
+  stage: prebuild
+  script:
+    - echo $CI_COMMIT_SHORT_SHA
+    - docker login registry-1.docker.io -u nguyendinhtoan -p Justadream123
+
+build-job:   # This job runs in the test stage.
+  stage: build    # It only starts when the job in the build stage completes successfully.
+  script:
+    - docker build -t nguyendinhtoan/nodejs:$CI_COMMIT_SHORT_SHA .
+    - docker push nguyendinhtoan/nodejs
+    - docker logout
+
+release-job:   # This job also runs in the test stage.
+  stage: release    # It can run at the same time as unit-test-job (in parallel).
+  script:
+    - echo "Linting code... This will take about 10 seconds."
+    - sleep 10
+    - echo "No lint issues found."
